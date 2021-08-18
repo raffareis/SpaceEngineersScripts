@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29201.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceEngineersScripts", "SpaceEngineersScripts\SpaceEngineersScripts.csproj", "{EC7AD84D-E07E-42D2-85EC-118783A9247F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrillerScript", "DrillerScript\DrillerScript.csproj", "{6D8195DF-9957-4599-8D36-C8E17610A910}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseScript", "BaseScript\BaseScript.csproj", "{9F5EB3DF-DEBD-4497-99A1-E0F5469A39EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WelderScript", "WelderScript\WelderScript.csproj", "{3E92F30C-498C-4FD3-B88B-EB156AE4DBBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoyagerScript", "VoyagerScript\VoyagerScript.csproj", "{56E62041-04E9-4353-93E2-CD86DE94F480}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaveMaeScript", "NaveMaeScript\NaveMaeScript.csproj", "{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC7AD84D-E07E-42D2-85EC-118783A9247F}.Debug|x64.ActiveCfg = Debug|x64
+		{EC7AD84D-E07E-42D2-85EC-118783A9247F}.Debug|x64.Build.0 = Debug|x64
+		{6D8195DF-9957-4599-8D36-C8E17610A910}.Debug|x64.ActiveCfg = Debug|x64
+		{6D8195DF-9957-4599-8D36-C8E17610A910}.Debug|x64.Build.0 = Debug|x64
+		{9F5EB3DF-DEBD-4497-99A1-E0F5469A39EF}.Debug|x64.ActiveCfg = Debug|x64
+		{9F5EB3DF-DEBD-4497-99A1-E0F5469A39EF}.Debug|x64.Build.0 = Debug|x64
+		{3E92F30C-498C-4FD3-B88B-EB156AE4DBBC}.Debug|x64.ActiveCfg = Debug|x64
+		{3E92F30C-498C-4FD3-B88B-EB156AE4DBBC}.Debug|x64.Build.0 = Debug|x64
+		{56E62041-04E9-4353-93E2-CD86DE94F480}.Debug|x64.ActiveCfg = Debug|x64
+		{56E62041-04E9-4353-93E2-CD86DE94F480}.Debug|x64.Build.0 = Debug|x64
+		{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}.Debug|x64.ActiveCfg = Debug|x64
+		{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B02AFACA-A181-47B7-B1DA-339B056DF462}
+	EndGlobalSection
+EndGlobal
