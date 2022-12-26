@@ -15,6 +15,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoyagerScript", "VoyagerScr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaveMaeScript", "NaveMaeScript\NaveMaeScript.csproj", "{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoverDrillerScript", "RoverDrillerScript\RoverDrillerScript.csproj", "{32F6B87E-C07A-4974-BB9C-82565D1AA2EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructorScript", "ConstructorScript\ConstructorScript.csproj", "{20042603-849C-40DD-B716-3869F10ADF46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseDrillScript", "BaseDrillScript\BaseDrillScript.csproj", "{6FBFF2B7-37C3-40B5-A940-5EE47B70A633}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -32,6 +38,12 @@ Global
 		{56E62041-04E9-4353-93E2-CD86DE94F480}.Debug|x64.Build.0 = Debug|x64
 		{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}.Debug|x64.ActiveCfg = Debug|x64
 		{A25B499E-4DE2-42AC-B0D2-14D19E6B990A}.Debug|x64.Build.0 = Debug|x64
+		{32F6B87E-C07A-4974-BB9C-82565D1AA2EB}.Debug|x64.ActiveCfg = Debug|x64
+		{32F6B87E-C07A-4974-BB9C-82565D1AA2EB}.Debug|x64.Build.0 = Debug|x64
+		{20042603-849C-40DD-B716-3869F10ADF46}.Debug|x64.ActiveCfg = Debug|x64
+		{20042603-849C-40DD-B716-3869F10ADF46}.Debug|x64.Build.0 = Debug|x64
+		{6FBFF2B7-37C3-40B5-A940-5EE47B70A633}.Debug|x64.ActiveCfg = Debug|x64
+		{6FBFF2B7-37C3-40B5-A940-5EE47B70A633}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

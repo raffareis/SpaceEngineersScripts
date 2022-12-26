@@ -154,6 +154,8 @@ namespace IngameScript {
 		private List<MeuPainel> PanelsPower;
 		private List<MeuPainel> PanelsJump;
 		private List<MeuPainel> PanelsDebug;
+		private List<MeuPainel> PanelsStructural;
+		private List<MeuPainel> PanelsWar;
 		private List<IMyTerminalBlock> blocksThrust;
 		private List<IMyTerminalBlock> blocksContainers;
 		private List<IMyBatteryBlock> blocksBatteries;
@@ -181,7 +183,7 @@ namespace IngameScript {
 		}
 
 		private void Inicializa() {
-
+			
 
 			List<IMyTerminalBlock> myTextSurfacesTerminal = new List<IMyTerminalBlock>();
 			GridTerminalSystem.GetBlocksOfType<IMyTextSurface>(myTextSurfacesTerminal, filterThis);
@@ -198,6 +200,8 @@ namespace IngameScript {
 			PanelsPower = TodosPaineis.Where(p => p.TipoPainel == "Power").ToList();
 			PanelsJump = TodosPaineis.Where(p => p.TipoPainel == "Jump").ToList();
 			PanelsDebug = TodosPaineis.Where(p => p.TipoPainel == "Debug").ToList();
+			PanelsStructural = TodosPaineis.Where(p => p.TipoPainel == "Structural").ToList();
+			PanelsWar = TodosPaineis.Where(p => p.TipoPainel == "War").ToList();
 			WriteLog("Inicializando...");
 
 			blocksThrust = new List<IMyTerminalBlock>();
@@ -244,10 +248,51 @@ namespace IngameScript {
 			
 		}
 
+		
+
+		private IEnumerable<IMyTerminalBlock> GetIncompleteBlocks(bool markOnHud = true)
+        {
+			var lst = new List<IMyTerminalBlock>();
+			GridTerminalSystem.GetBlocks(lst);
+			var minVec = Me.CubeGrid.Min;
+			var maxVec = Me.CubeGrid.Max;
+			List<IMySlimBlock> blocks = new List<IMySlimBlock>();
+
+			for (var i = minVec.X; i <= maxVec.X; i++)
+				for (var j = minVec.Y; j <= maxVec.Y; j++)
+					for (var k = minVec.Y; k <= maxVec.Y; k++) {
+						var vec = new Vector3I(i, j, k);
+						if (Me.CubeGrid.CubeExists(vec))
+						{
+							var cubo = Me.CubeGrid.GetCubeBlock(vec);
+							
+							if(cubo!=null)
+								blocks.Add(cubo);
+						}
+					}
+			
+			foreach(var cubo in blocks)      {
+				if(cubo.HasDeformation || !cubo.IsFullIntegrity || cubo.BuildLevelRatio < 1 || cubo.CurrentDamage > 0 || cubo.BuildIntegrity < 1 || cubo.IsDestroyed)
+                {
+					//GPS:[Asteroid] Ag4: -241699.94:-123577.88:-154025.73:#FFF18975:
+					var posicaoMundo = Me.CubeGrid.GridIntegerToWorld(cubo.Position);
+					Echo($"Cubo deformado: x:{posicaoMundo.X} y:{posicaoMundo.Y} z:{posicaoMundo.Z}");					
+					WriteLog($"GPS:[Cubo deformado]:{posicaoMundo.X}:{posicaoMundo.Y}:{posicaoMundo.Z}:#FF00FF:");
+				}
+            }			
+			//lst.Where(i=>i.ShowOnHUD).ToList().ForEach(i => i.ShowOnHUD = false);
+			var faulty = lst.Where(i => !i.IsFunctional).ToList();
+			if (markOnHud)
+				faulty.ForEach(i => i.ShowOnHUD = true);
+			return faulty;
+        }
 		private void Main() {
 			ticks++;
 			if (cockpit != null)
 				UpdateCockpit();
+
+
+
 
 			if (ticks % 20 == 0) { //Os que atualiza 20x menos
 				if (Me.CustomData != lastCustomData) {
@@ -269,18 +314,35 @@ namespace IngameScript {
 					UpdateProducao();
 				if (PanelsRefinery.Any())
 					UpdateInventory();
+
+				
+				
+
 			}
-			if (ticks % 40 == 0) {//Os que atualiza 40x menos
-								  //UpdateBatteryPanel();
-								  //IMyTextPanel panelPower =  GridTerminalSystem.GetBlockWithName(PANEL_POWER);
-								  //UpdateBatteryPanel();
+			if (ticks % 40 == 0) {
+				//UpdateFaults();
+				if (PanelsHydrogen.Any())
+					UpdateHydrogen();
+				//Os que atualiza 40x menos
+				//UpdateBatteryPanel();
+				//IMyTextPanel panelPower =  GridTerminalSystem.GetBlockWithName(PANEL_POWER);
+				//UpdateBatteryPanel();
+
+			}
+			if(ticks % 80 == 0) {
 				
 			}
 
 			//UpdateInventory();
 			//UpdateProducao();
 		}
+		private void UpdateFaults()
+        {
+			var faulty = GetIncompleteBlocks(true);
+			foreach (var i in faulty)
+				WriteLog("Faulty: " + i.CustomName);
 
+		}
 		private void UpdateCockpit() {
 			/* Motion */
 			var panelMove = new MeuPainel(cockpit.GetSurface(2));
@@ -288,7 +350,7 @@ namespace IngameScript {
 			textoMove += $"\nRot: {cockpit.RotationIndicator}";
 			textoMove += $"\nRol: {cockpit.RollIndicator:N2}";
 			panelMove.WriteText(textoMove);
-
+			
 			/* Thrust */
 			var panelThrust = new MeuPainel(cockpit.GetSurface(1));
 
@@ -298,32 +360,32 @@ namespace IngameScript {
 
 			var textoThrust = $"Thr: {tWorking} / {tTotal}\n";
 
-			var grp = thrusts.GroupBy(g => Vector3I.GetDominantDirection(g.GridThrustDirection));
+			//var grp = thrusts.GroupBy(g => Vector3I.GetDominantDirection(g.GridThrustDirection));
 
-			var L = grp.Where(g => g.Key == CubeFace.Left).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
-			var R = grp.Where(g => g.Key == CubeFace.Right).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
-			var U = grp.Where(g => g.Key == CubeFace.Up).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
-			var D = grp.Where(g => g.Key == CubeFace.Down).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
-			var F = grp.Where(g => g.Key == CubeFace.Forward).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
-			var B = grp.Where(g => g.Key == CubeFace.Backward).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var L = grp.Where(g => g.Key == CubeFace.Left).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var R = grp.Where(g => g.Key == CubeFace.Right).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var U = grp.Where(g => g.Key == CubeFace.Up).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var D = grp.Where(g => g.Key == CubeFace.Down).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var F = grp.Where(g => g.Key == CubeFace.Forward).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
+			//var B = grp.Where(g => g.Key == CubeFace.Backward).Select(g => g.Sum(a => a.CurrentThrust) / g.Sum(a => a.MaxThrust)).SingleOrDefault();
 
-			var LR = L - R;
-			var BF = B - F;
-			var DU = D - U;
+			//var LR = L - R;
+			//var BF = B - F;
+			//var DU = D - U;
 
-			var maxWidthIndicator = 30;
+			//var maxWidthIndicator = 30;
 
-			textoThrust += $"\nLR:{LR.ToString("P0").PadLeft(6)}";
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(LR * 100))}";
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(LR * 100))}";
-			textoThrust += $"\n\nBF:{BF.ToString("P0").PadLeft(6)}";
+			//textoThrust += $"\nLR:{LR.ToString("P0").PadLeft(6)}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(LR * 100))}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(LR * 100))}";
+			//textoThrust += $"\n\nBF:{BF.ToString("P0").PadLeft(6)}";
 
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(BF * 100))}";
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(BF * 100))}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(BF * 100))}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(BF * 100))}";
 
-			textoThrust += $"\n\nDU:{DU.ToString("P0").PadLeft(6)}";
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(DU * 100))}";
-			textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(DU * 100))}";
+			//textoThrust += $"\n\nDU:{DU.ToString("P0").PadLeft(6)}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(DU * 100))}";
+			//textoThrust += $"\n{MontaIndicator(-100, 100, maxWidthIndicator, (int)(DU * 100))}";
 
 			//foreach(var g in grp.OrderBy(a=>a.Key)) {
 			//    var curT = g.Sum(a => a.CurrentThrust);
@@ -422,14 +484,78 @@ namespace IngameScript {
 			public int MaxVolume { get; set; }
 
 		}
-		
+
+
+		private DateTime lastHydrogenTime = DateTime.Now;
+		private int lastIceQt = 0;
+		private int lastUraniumQt = 0;
+		private float lastHydroPercent = 0;
+		private void UpdateHydrogen() {
+			var generators = new List<IMyGasGenerator>();
+			GridTerminalSystem.GetBlocksOfType<IMyGasGenerator>(generators, filterThis);
+			var tanks = new List<IMyGasTank>();
+			GridTerminalSystem.GetBlocksOfType<IMyGasTank>(tanks, filterThis);
+
+			var inventories = blocksContainers.SelectMany(b => {
+				List<IMyInventory> lst = new List<IMyInventory>();
+				for (var i = 0; i < b.InventoryCount; i++) {
+					lst.Add(b.GetInventory(i));
+
+				};
+				return lst;
+			});
+			var gelos = inventories.Sum(i => i.GetItemAmount(MyItemType.MakeOre("Ice")).ToIntSafe()  );
+			var uraniums = inventories.Sum(i => i.GetItemAmount(MyItemType.MakeIngot("Uranium")).ToIntSafe());
+			
+
+			var totalCur = 0f;
+			var totalMax = 0f;
+			foreach(var t in tanks) {
+				totalMax += t.Capacity;
+				totalCur += Convert.ToSingle(t.Capacity * t.FilledRatio);
+            }
+
+			var timeElapsed = DateTime.Now - lastHydrogenTime;
+			var deltaCur = (totalCur/totalMax) - lastHydroPercent;
+			var deltaGelo = gelos - lastIceQt;
+			var deltaUranium = uraniums - lastUraniumQt;
+
+			lastHydrogenTime = DateTime.Now;
+			lastHydroPercent = totalCur / totalMax;
+			lastIceQt = gelos;
+			lastUraniumQt = uraniums;
+			var geloPorMinuto = deltaGelo / timeElapsed.TotalMinutes;
+			var uraniumPorMinuto = deltaUranium / timeElapsed.TotalMinutes;
+			var tempoRestanteGelo = gelos / geloPorMinuto;
+			var tempoRestanteUranium = uraniums / uraniumPorMinuto;
+
+			
+			var strHydroP = MontaIndicator(0, 100, 40, Convert.ToInt32((totalCur / totalMax) * 100));
+			var tempoHydro = (1 - (totalCur / totalMax)) / (deltaCur / timeElapsed.TotalMinutes);
+			var strConsumoGelo = $"{-geloPorMinuto:N1} Ice/Min  ({-tempoRestanteGelo:N1} min)";
+			var strConsumoUranium = $"{-uraniumPorMinuto:N1} U/Min  ({-tempoRestanteUranium:N1} min)";
+
+			var sb = new StringBuilder();
+			sb.AppendLine($"Hydrogen   {totalCur/totalMax:P2}   {tempoHydro:N1}min  :");
+			sb.AppendLine(strHydroP);
+			
+			sb.AppendLine($"\nIce ({gelos/1000:N1}k): ");
+			sb.AppendLine(strConsumoGelo);
+			sb.AppendLine($"\nU ({uraniums}): ");
+			sb.AppendLine(strConsumoUranium);
+			WriteToPanels(PanelsHydrogen, sb.ToString());
+
+        }
+
 		private void UpdateInventory() {
 			
 
 
 			var dictItens = new Dictionary<string, int>();
-			var dictRaw = new Dictionary<string, float>();
+			var dictIngots = new Dictionary<string, float>();
+			var dictOres = new Dictionary<string, float>();
 			var dictInv = new Dictionary<string, List<InventoryInfo>>();
+			
 			var sb = new StringBuilder();
 			foreach (var c in blocksContainers) {
 				var lstInv = new List<InventoryInfo>();
@@ -442,12 +568,18 @@ namespace IngameScript {
 					foreach (var item in items) {
 						var typeId = item.Type.TypeId.ToString();
 						var id = decodeItemName(item.Type.SubtypeId.ToString(), typeId);
-						if (typeId.EndsWith("_Ore") || typeId.EndsWith("_Ingot")) {
-							if (!dictRaw.ContainsKey(id)) {
-								dictRaw.Add(id, 0);
+						if (typeId.EndsWith("_Ingot")) {
+							if (!dictIngots.ContainsKey(id)) {
+								dictIngots.Add(id, 0);
 							}
-							dictRaw[id] += (float)item.Amount;
-						} else {
+							dictIngots[id] += (float)item.Amount;
+						} else if (typeId.EndsWith("_Ore") ) {
+							if (!dictOres.ContainsKey(id)) {
+								dictOres.Add(id, 0);
+							}
+							dictOres[id] += (float)item.Amount;
+						}						
+						else {
 							if (!dictItens.ContainsKey(id)) {
 								dictItens.Add(id, 0);
 							}
@@ -455,7 +587,8 @@ namespace IngameScript {
 						}
 					}
 				}
-				dictInv.Add(c.CustomName, lstInv);
+				if(c is IMyCargoContainer)
+					dictInv.Add(c.CustomName, lstInv);
 
 
 
@@ -467,30 +600,37 @@ namespace IngameScript {
 				sb.AppendLine(dictItens[item].ToString().PadLeft(8, ' ') + " " + item);
 			}
 
-			sb.AppendLine("            --- RAW ---");
-			var listRaw = dictRaw.Keys.OrderBy(n => n);
-			foreach (var item in listRaw) {
-				sb.AppendLine("  " + dictRaw[item].ToString("N1").PadLeft(8, ' ') + " " + item);
+			sb.AppendLine("\n            --- INGOTS ---");
+			var listIngots = dictIngots.Keys.OrderBy(n => n);
+			foreach (var item in listIngots) {
+				sb.AppendLine("  " + dictIngots[item].ToString("N1").PadLeft(8, ' ') + " " + item);
 			}
 
-			sb.AppendLine("            --- CARGO ---");
-			var listInv = dictInv.Where(a=>a.Value.Max(s=>s.MaxVolume) > 15).OrderByDescending(n => n.Value.Select(a=>a.MaxVolume).Max()).ThenByDescending(n => n.Value.Sum(a=>a.CurrentVolume));
-			var v = 0;
-			foreach (var item in listInv) {
-				v++;
-				var curVolTot = item.Value.Sum(i => i.CurrentVolume);
-				var curVolMax = item.Value.Sum(i => i.MaxVolume);
-				//sb.AppendLine(v.ToString());
-				sb.AppendLine($"  {v.ToString().PadLeft(2)} - {(float)curVolTot / curVolMax:P0} ({item.Key})");
-				var iid = 0;
-				foreach (var ii in item.Value) {
-					sb.AppendLine($"    - {ii.CurrentVolume.ToString().PadLeft(4)}/{ii.MaxVolume.ToString().PadLeft(4)} ({(float)ii.CurrentVolume / ii.MaxVolume:P0})");
+			sb.AppendLine("\n            --- ORES ---");
+			var listOres = dictOres.Keys.OrderBy(n => n);
+			foreach (var item in listOres) {
+				sb.AppendLine("  " + dictOres[item].ToString("N1").PadLeft(8, ' ') + " " + item);
+			}
+			if (false) { //Desativado
 
+				sb.AppendLine("\n            --- CARGO ---");
+				var listInv = dictInv.Where(a => a.Value.Max(s => s.MaxVolume) > 15).OrderByDescending(n => n.Value.Select(a => a.MaxVolume).Max()).ThenByDescending(n => n.Value.Sum(a => a.CurrentVolume));
+				var v = 0;
+				foreach (var item in listInv) {
+					v++;
+					var curVolTot = item.Value.Sum(i => i.CurrentVolume);
+					var curVolMax = item.Value.Sum(i => i.MaxVolume);
+					//sb.AppendLine(v.ToString());
+					sb.AppendLine($"  {v.ToString().PadLeft(2)} - {(float)curVolTot / curVolMax:P0} ({item.Key})");
+					var iid = 0;
+					foreach (var ii in item.Value) {
+						sb.AppendLine($"    - {ii.CurrentVolume.ToString().PadLeft(4)}/{ii.MaxVolume.ToString().PadLeft(4)} ({(float)ii.CurrentVolume / ii.MaxVolume:P0})");
+
+					}
+					//sb.AppendLine("  " +  dictInv[item].ToString("N1").PadLeft(8, ' ') + " " + item);
 				}
-				//sb.AppendLine("  " +  dictInv[item].ToString("N1").PadLeft(8, ' ') + " " + item);
+
 			}
-
-
 			
 
 			WriteToPanels(PanelsRefinery, sb.ToString());

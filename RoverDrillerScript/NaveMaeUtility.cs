@@ -19,6 +19,7 @@ using VRageMath;
 
 namespace IngameScript {
 	partial class Program {
+		private const string MULTIPLIERS = ".kMGTPEZY";
 
 		private string MontaIndicator(int min, int max, int width, int valor) {
 			var widthInterno = width - 2;
@@ -34,13 +35,10 @@ namespace IngameScript {
 			var tamanhoR = (int)(max / (float)valorBloco);
 			var strL = new string(' ', tamanhoL - blocosL) + new string(indicatorL, blocosL);
 			var strR = new string(indicatorR, blocosR) + new string(' ', tamanhoR - blocosR);
-			var final = strL.Length > 0 ? "[" + strL + "|" + strR + "]" : $"[{strR}]";
+
+			var final = "[" + strL + (min<0 ? "|" : "") + strR + "]";
 			return final;
 		}
-
-		private const string MULTIPLIERS = ".kMGTPEZY";
-
-		
 			private string getExtraField(IMyTerminalBlock block, string regexString) {
 			System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(regexString, System.Text.RegularExpressions.RegexOptions.Singleline);
 			string result = "";

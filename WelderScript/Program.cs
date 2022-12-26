@@ -166,35 +166,36 @@ namespace IngameScript {
             var assemblerRatio = 1;
             Echo($"Assemblers: {assemblerCount}");
 
+            for(var k = 0; k<=1; k++) //Faz duas vezes em sequencia.
+                foreach (var item in itemsToBuild) {
 
-            foreach (var item in itemsToBuild) {
-
-                if (!ItemsToBluePrint.ContainsKey(item.Key)) { 
-                    Echo($"Item Não encontrado no dicionário de blueprints: {item.Key} - {item.Value}");
-                    continue;
-                }
-
-                MyDefinitionId mydef;                
-                MyDefinitionId.TryParse(ItemsToBluePrint[item.Key], out mydef);
-                if (assemblers.Any(a => {
-                    var lst = new List<MyProductionItem>();
-                    a.GetQueue(lst);
-                    return lst.Any(i => i.BlueprintId == mydef && i.Amount >= 1);
-                }))
-                    continue;
-
-
-                var assemblersToUse = assemblers.OrderByDescending(a => a.IsQueueEmpty).ThenBy(a => a.IsProducing).ThenBy(a => {
-                    var lst = new List<MyProductionItem>();                    
-                    a.GetQueue(lst);
-                    return lst.Sum(i => i.Amount.RawValue);
-                }).Take(assemblerCount / assemblerRatio );
-                foreach (var assembler in assemblersToUse) {
-                    if (assembler != null && item.Value > 0) {
-                        Echo($"Construindo {item.Value * 1.5m / (assemblerCount / assemblerRatio)} {item.Key} em {assembler.CustomName}");
-                        assembler.AddQueueItem(mydef, item.Value * 1.5m /(assemblerCount / assemblerRatio));
+                    if (!ItemsToBluePrint.ContainsKey(item.Key)) { 
+                        Echo($"Item Não encontrado no dicionário de blueprints: {item.Key} - {item.Value}");
+                        continue;
                     }
-                }
+
+                    MyDefinitionId mydef;                
+                    MyDefinitionId.TryParse(ItemsToBluePrint[item.Key], out mydef);
+                    if (assemblers.Any(a => {
+                        var lst = new List<MyProductionItem>();
+                        a.GetQueue(lst);
+                        return lst.Any(i => i.BlueprintId == mydef && i.Amount >= 1);
+                    }))
+                        continue;
+
+
+                    var assemblersToUse = assemblers.OrderByDescending(a => a.IsQueueEmpty).ThenBy(a => a.IsProducing).ThenBy(a => {
+                        var lst = new List<MyProductionItem>();                    
+                        a.GetQueue(lst);
+                        return lst.Sum(i => i.Amount.RawValue);
+                    }).Take(assemblerCount / assemblerRatio ).ToList();
+                   //assemblersToUse.InsertRange(0,assemblersToUse);
+                    foreach (var assembler in assemblersToUse) {
+                        if (assembler != null && item.Value > 0) {
+                            Echo($"Construindo {Math.Ceiling(item.Value * 1m / (assemblerCount / assemblerRatio))} {item.Key} em {assembler.CustomName}");
+                            assembler.AddQueueItem(mydef, Math.Ceiling(item.Value * 1m /(assemblerCount / assemblerRatio)));
+                        }
+                    }
                 
             }
 
@@ -421,8 +422,9 @@ namespace IngameScript {
             ItemsToBluePrint.Add("RadioCommunication", "MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent");
             ItemsToBluePrint.Add("Detector", "MyObjectBuilder_BlueprintDefinition/DetectorComponent");
             ItemsToBluePrint.Add("SolarCell", "MyObjectBuilder_BlueprintDefinition/SolarCell");
-            ItemsToBluePrint.Add("SuperConductor", "MyObjectBuilder_BlueprintDefinition/Superconductor");
+            ItemsToBluePrint.Add("Superconductor", "MyObjectBuilder_BlueprintDefinition/Superconductor");
             ItemsToBluePrint.Add("Girder", "MyObjectBuilder_BlueprintDefinition/GirderComponent");
+            ItemsToBluePrint.Add("Medicalcomponent", "MyObjectBuilder_BlueprintDefinition/MedicalComponent");
 
 
             //MinimumItems.Add("Computer", 20);
